@@ -6,6 +6,17 @@ function delay(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+const getDocumentName = (document, i) => {
+  switch (document.type) {
+    case 'rate_plan':
+      return document.data.rate_name[0].text;
+    case 'rate_specs':
+      return document.data.spec[0].text;
+    default:
+      return 'document ' + i;
+  }
+};
+
 export default async function handler(req, res) {
   switch (req.method) {
     case "POST":
@@ -74,7 +85,8 @@ export default async function handler(req, res) {
         let document = JSON.stringify(allDocuments[i]);
         console.log('Document data to migrate', allDocuments[i].data);
 
-        const documentName = allDocuments[i].data?.title?.[0]?.text || `document ${i}`;
+        // const documentName = allDocuments[i].data?.title?.[0]?.text || `document ${i}`;
+        const documentName = getDocumentName(allDocuments[i], i);
         //Update assets id with new one.
         console.log('newAssets', newAssets);
         for (let j = 0; j < newAssets.length; j++) {

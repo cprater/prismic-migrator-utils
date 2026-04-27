@@ -1,6 +1,18 @@
 
 const prismic = require("@prismicio/client");
 
+
+const getDocumentName = (document, i) => {
+  switch (document.type) {
+    case 'rate_plan':
+      return document.data.rate_name[0].text;
+    case 'rate_specs':
+      return document.data.spec[0].text;
+    default:
+      return 'document ' + i;
+  }
+};
+
 const migrateDocuments = async (documentIds) => {
   const client = prismic.createClient(process.env.Source_Repo, {});
   const allDocuments = await client.getAllByIDs(documentIds);
@@ -11,9 +23,9 @@ const migrateDocuments = async (documentIds) => {
 
     console.log('Whats the title?', allDocuments[i].data);
 
-    const documentName =
-      allDocuments[i].data?.title?.[0]?.text || `document ${i}`;
+    const documentName = getDocumentName(allDocuments[i], i);
 
+    // TODO: figure out handling assets
     // for (const asset of newAssets) {
     //   document = document.replaceAll(asset.prevID, asset.id);
     // }
