@@ -32,8 +32,6 @@ const migrateDocuments = async (documentIds) => {
     const ans = await r.text();
     console.log(`Document insert response:`, ans);
     if (!ans.includes(`"id":`)) failures++;
-
-    await delay(1500);
   }
 };
 
