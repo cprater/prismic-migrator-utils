@@ -24,7 +24,7 @@ const migrateDocuments = async (documentIds) => {
         repository: process.env.Destination_Repo,
         "x-api-key": process.env.Migration_Api_Key,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${destToken}`,
+        Authorization: `Bearer ${process.env.Destination_Access_Token}`,
       },
       body: JSON.stringify({ ...JSON.parse(document), title: documentName }),
     });
