@@ -4,16 +4,14 @@ const https = require("https");
 const axios = require("axios");
 const FormData = require("form-data");
 
-// The path of the directory to save the image
 const dirPath = "./images";
 
-export const downloadAsset = async (imageUrl, imageId, imageName) => {
+const downloadAsset = async (imageUrl, imageId, imageName) => {
   return new Promise((resolve, reject) => {
-    //create folder with image id to avoid files with same name
     const folderName = `${dirPath}/${imageId}`;
     try {
       if (!fs.existsSync(folderName)) {
-        fs.mkdirSync(folderName);
+        fs.mkdirSync(folderName, { recursive: true });
       }
     } catch (err) {
       console.error(err);
@@ -21,9 +19,8 @@ export const downloadAsset = async (imageUrl, imageId, imageName) => {
 
     const file = fs.createWriteStream(path.join(folderName, imageName));
     https
-      .get(imageUrl, async (response) => {
+      .get(imageUrl, (response) => {
         response.pipe(file);
-
         file.on("finish", () => {
           file.close();
           console.log(`Image downloaded as ${imageName}`);
@@ -31,23 +28,17 @@ export const downloadAsset = async (imageUrl, imageId, imageName) => {
         });
       })
       .on("error", (err) => {
-        fs.unlink(imageName);
+        fs.unlink(path.join(folderName, imageName), () => {});
         console.error(`Error downloading image: ${err.message}`);
         reject({ err: `Error downloading image: ${err.message}` });
       });
   });
 };
 
-export const uploadAsset = async (
-  fileId,
-  filename,
-  assets,
-  newAssets,
-  i
-) => {
+const uploadAsset = async (fileId, filename, assets, newAssets, i) => {
   return new Promise((resolve, reject) => {
     const token = process.env.Destination_Access_Token;
-    let data = new FormData();
+    const data = new FormData();
     data.append(
       "file",
       fs.createReadStream(
@@ -55,7 +46,7 @@ export const uploadAsset = async (
       )
     );
 
-    let config = {
+    const config = {
       method: "post",
       maxBodyLength: Infinity,
       url: "https://asset-api.prismic.io/assets",
@@ -64,7 +55,7 @@ export const uploadAsset = async (
         Authorization: `Bearer ${token}`,
         ...data.getHeaders(),
       },
-      data: data,
+      data,
     };
 
     axios
@@ -74,12 +65,12 @@ export const uploadAsset = async (
         resolve({ msg: JSON.stringify(response.data) });
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         reject({ err: error });
       });
   });
 };
 
-export const getToken = () => {
-  return process.env.Source_Access_Token;
-};
+const getToken = () => process.env.Source_Access_Token;
+
+module.exports = { downloadAsset, uploadAsset, getToken };

@@ -11,27 +11,31 @@ export default async function handler(req, res) {
     case "POST":
       const { newAssets } = req.body;
 
-      const token = await getToken();
+      const sourceToken = getToken();
+      const destToken = process.env.Destination_Access_Token;
+      
       //Get all shared slices
       const slicesRes = await fetch("https://customtypes.prismic.io/slices", {
         headers: {
           repository: process.env.Source_Repo,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${sourceToken}`,
         },
       });
       const slices = await slicesRes.json();
-      
+
       //Migrate all slices
       for (let i = 0; i < slices.length; i++) {
         await fetch("https://customtypes.prismic.io/slices/insert", {
           method: "POST",
           headers: {
             repository: process.env.Destination_Repo,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${destToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(slices[i]),
         });
+
+        console.log('slices insert response:', slices);
       }
       //return res.status(200).json({ ok: true });
       //Get all types
@@ -40,11 +44,12 @@ export default async function handler(req, res) {
         {
           headers: {
             repository: process.env.Source_Repo,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${sourceToken}`,
           },
         }
       );
       const types = await typesRes.json();
+      console.log('types response', types);
 
       // migrate all types
       for (let i = 0; i < types.length; i++) {
@@ -52,7 +57,7 @@ export default async function handler(req, res) {
           method: "POST",
           headers: {
             repository: process.env.Destination_Repo,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${destToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(types[i]),
@@ -67,8 +72,11 @@ export default async function handler(req, res) {
       //Migrate documents
       for (let i = 0; i < allDocuments.length; i++) {
         let document = JSON.stringify(allDocuments[i]);
-        const documentName = allDocuments[i].data.title[0].text || `document ${i}`;
+        console.log('Document data to migrate', allDocuments[i].data);
+
+        const documentName = allDocuments[i].data?.title?.[0]?.text || `document ${i}`;
         //Update assets id with new one.
+        console.log('newAssets', newAssets);
         for (let j = 0; j < newAssets.length; j++) {
           document = document.replaceAll(newAssets[j].prevID, newAssets[j].id);
         }
@@ -79,7 +87,7 @@ export default async function handler(req, res) {
             repository: process.env.Destination_Repo,
             "x-api-key": process.env.Migration_Api_Key,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${destToken}`,
           },
 
           body: JSON.stringify({
@@ -88,7 +96,7 @@ export default async function handler(req, res) {
           }),
         });
         const ans = await r.text();
-        console.log(ans);
+        console.log('documents insert response:', ans);
         //Number of failures
         if (ans.search(`"id":`) === -1) failures++;
         await delay(1500);

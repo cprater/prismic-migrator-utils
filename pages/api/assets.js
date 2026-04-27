@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   switch (req.method) {
     case "GET":
       try {
-        const token = await getToken();
+        const token = getToken();
         //Get all assets
         const myHeaders = new Headers();
         myHeaders.append("repository", process.env.Source_Repo);
@@ -19,6 +19,8 @@ export default async function handler(req, res) {
           headers: myHeaders,
           redirect: "follow",
         };
+
+        console.log('requestOptions', requestOptions);
 
         const ans = await fetch(
           "https://asset-api.prismic.io/assets?limit=1000",
@@ -54,13 +56,11 @@ export default async function handler(req, res) {
     case "PUT":
       const { assets } = req.body;
       const newAssets = [];
-      const token = await getToken();
       try {
         for (let i = 0; i < assets.items.length; i++) {
           await uploadAsset(
             assets.items[i].id,
             assets.items[i].filename,
-            token,
             assets,
             newAssets,
             i
