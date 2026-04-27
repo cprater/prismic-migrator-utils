@@ -8,6 +8,10 @@ const hooksRouter = require("./routes/hooks");
 const app = express();
 app.use(express.json());
 
+app.use('/health', (req, res) => {
+  return res.status(200).json({ status: 'ok' });
+});
+
 app.use("/assets", assetsRouter);
 app.use("/documents", documentsRouter);
 app.use("/hooks", hooksRouter);
