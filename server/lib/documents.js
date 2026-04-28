@@ -29,11 +29,11 @@ const migrateDocuments = async (documentIds) => {
     // }
 
     const r = await fetch("https://migration.prismic.io/documents", {
-      // method: "POST", fucking LOL
-      method: "PUT",
+      method: "POST", // fucking LOL
+      // method: "PUT",
       headers: {
         repository: process.env.Destination_Repo,
-        "x-api-key": process.env.Migration_Api_Key,
+        // "x-api-key": process.env.Migration_Api_Key,
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.Destination_Access_Token}`,
       },
