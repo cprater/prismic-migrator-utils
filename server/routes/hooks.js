@@ -46,9 +46,6 @@ const router = Router();
 
 
 router.post("/publish", async (req, res) => {
-  console.log('PUBLISH HOOK CALLED WITH HEADERS', req.headers);
-  console.log('PUBLISH CALLED WITH BODY', req.body)
-
   const documentIds = req.body.documents || [];
 
   if (documentIds.length === 0) {

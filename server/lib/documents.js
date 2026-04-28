@@ -16,12 +16,10 @@ const getDocumentName = (document, i) => {
 const migrateDocuments = async (documentIds) => {
   const client = prismic.createClient(process.env.Source_Repo, {});
   const allDocuments = await client.getAllByIDs(documentIds);
-  let failures = 0;
+  // let failures = 0;
 
   for (let i = 0; i < allDocuments.length; i++) {
     let document = JSON.stringify(allDocuments[i]);
-
-    console.log('Whats the title?', allDocuments[i].data);
 
     const documentName = getDocumentName(allDocuments[i], i);
 
@@ -41,9 +39,16 @@ const migrateDocuments = async (documentIds) => {
       body: JSON.stringify({ ...JSON.parse(document), title: documentName }),
     });
 
-    const ans = await r.text();
-    console.log(`Document insert response:`, ans);
-    if (!ans.includes(`"id":`)) failures++;
+    console.log('Document insert response status:', r.status);
+
+    if (!r.ok) {
+      console.error(`Failed to migrate document ${documentName} with id ${allDocuments[i].id}. Status: ${r.status}`);
+
+      const ans = await r.text();
+      console.log('Error response body:', ans);
+    }
+
+    // if (!ans.includes(`"id":`)) failures++;
   }
 };
 
